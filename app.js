@@ -2,7 +2,7 @@ function renderEpisodesList(episodesList, episodesContainer) {
   const ul = document.createElement("ul");
   ul.classList.add("episodes-list");
 
-  const episodesCharacters = []; // Using for throwing the characters array
+  const episodesCharacters = []; // Using for throwing the characters links array
 
   const listItems = episodesList
     .sort(({ episodeId: a }, { episodeId: b }) => a - b)
@@ -29,17 +29,22 @@ function renderEpisodesList(episodesList, episodesContainer) {
   return episodesCharacters;
 }
 
-function renderEpisodeCharacters({ episodeId, characters }) {
+function renderEpisodeCharacters({ episodeId, characters: charactersLinks }) {
   const episodeLi = document.querySelector(`.episode-${episodeId}`);
   const episodeCharacters = document.createElement("p");
-
-  characters.forEach((url) =>
-    fetch(url)
-      .then((response) => response.json())
-      .then((data) => episodeCharacters.append(data.name + ", "))
-  );
-
+  episodeCharacters.classList.add("loader");
   episodeLi.append(episodeCharacters);
+
+  Promise.all(
+    charactersLinks.map((url) =>
+      fetch(url)
+        .then((response) => response.json())
+        .then((data) => data.name)
+    )
+  ).then((values) => {
+    episodeCharacters.classList.remove("loader");
+    episodeCharacters.innerText = "Characters: " + values.join(", ");
+  });
 }
 
 const loadBtn = document.querySelector("#load-btn");
